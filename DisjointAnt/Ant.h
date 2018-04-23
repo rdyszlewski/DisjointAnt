@@ -17,6 +17,9 @@ public:
 	void LookFor(Graph* graph);
 	inline std::vector<uint> GetPath() const;
 	void Reset();
+
+	inline uint GetId();
+	inline uint GetColony();
 private:
 	void Step(Graph* graph);
 	void Visit(uint vertex);

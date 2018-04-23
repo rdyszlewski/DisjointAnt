@@ -80,6 +80,12 @@ std::vector<uint>& Ant::ExcludePossibleVertex(std::vector<uint>& possibleVertex)
 {
 	//TODO dokoñczyæ to 
 	//TODO ustawiæ poprane ograniczenia
+
+	//TODO sprawdziæ, czy to dzia³a
+	std::remove_if(possibleVertex.begin(), possibleVertex.end(),
+		[](auto& x) {return x->m_visited_vertices[x]}),
+		possibleVertex.end();
+
 	return possibleVertex;
 }
 
@@ -97,6 +103,16 @@ void Ant::Reset()
 		}
 	}
 	m_current_vertex = m_home_vertex;
+}
+
+uint Ant::GetId()
+{
+	return m_id;
+}
+
+uint Ant::GetColony()
+{
+	return m_colony;
 }
 
 void Ant::Visit(uint vertex) 

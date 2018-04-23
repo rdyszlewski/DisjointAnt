@@ -1,6 +1,7 @@
 #pragma once
 #include "Graph.hpp"
 #include "Ant.h"
+#include <limits>
 
 class AntColony
 {
@@ -11,13 +12,16 @@ public:
 	void Start(Graph* graph, int stepNumber, int antInColony, float alpha, float p, float beta);
 private:
 	void InitPheromones(Graph* graph);
-	void CreateAnts(int numberAnts, int numberColony);
+	std::vector<Ant*> CreateAnts(int numberAnts, int numberColony, Graph* graph);
 	void StartAnts();
-	void StartAnt();
-	int ChooseBestPath();
+	void StartAnt(Ant* ant);
+	void ChooseBestPath();
 	void ResetAnts();
 
 	void ReleaseAnts();
+	void Init(Graph* graph, int stepNumber, int antInColony, float alpha, float p, float beta);
+
+	int CalculateObjectiveFunction();
 private:
 	std::vector<Ant*> m_ants;
 	Graph* m_graph;
@@ -33,6 +37,11 @@ private:
 	float m_p;
 	int m_steps;
 	int m_current_step;
+
+	//TODO zainicjowaæ to
+	std::vector<std::vector<unsigned int>> m_best_path;
+	std::vector<Ant*> m_best_ant;
+	std::vector<int> m_best_distance;
 
 private:
 	const double MIN_PHEROMONE = 0.001;
