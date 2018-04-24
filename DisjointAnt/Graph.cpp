@@ -1,4 +1,5 @@
 #include "Graph.hpp"
+#include <algorithm>
 
 Graph::Graph()
 {
@@ -39,14 +40,14 @@ void Graph::Init(int* data, int verticesNumber, int* sources, int* targets)
 		}
 	}
 
-	for (int i = 0; i < verticesNumber; i++) {
+	/*for (int i = 0; i < verticesNumber; i++) {
 		for (int j = 0; j < verticesNumber; j++) {
 			if (m_data[i].count(j)) {
 				std::cout << m_data[i].at(j)->weight;
 				std::cout << "\n";
 			}
 		}
-	}
+	}*/
 }
 
 std::vector<unsigned int> Graph::GetPossibleVertex(int vertex)
@@ -91,4 +92,14 @@ void Graph::Release()
 	//delete m_data; //TODO zobaczyæ dlaczego nie moge tego usun¹æ
 	delete m_sources;
 	delete m_targets;
+}
+
+/// Wykonuje podan¹ w parametrze akcje dla ka¿dej krawêdzi w grafie
+void Graph::ForEach(std::function<void(Graph::Edge*)> lambda)
+{
+	std::for_each(m_data, m_data + (int)m_vertices_number, [&](std::map<int, Edge*>& x) {
+		std::for_each(x.begin(), x.end(), [&](auto& y) {
+			lambda(y.second);
+		});
+	});
 }

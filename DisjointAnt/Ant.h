@@ -14,7 +14,7 @@ public:
 
 	const uint GetDistance() const;
 	void UpdatePheromone(Graph* graph, double factor);
-	void LookFor(Graph* graph, unsigned short** bestPaths);
+	void LookFor(Graph* graph, unsigned short** bestPaths, double alpha, double beta);
 	inline std::vector<uint> GetPath() const
 	{
 		return m_path;
@@ -30,9 +30,10 @@ public:
 		return m_colony;
 	}
 private:
-	void Step(Graph* graph, unsigned short** bestPaths);
+	void Step(Graph* graph, unsigned short** bestPaths, double alpha, double beta);
 	void Visit(uint vertex);
-	uint RandomVertex(std::vector<uint> possibleVertex);
+	uint RandomVertex(Graph* graph, std::vector<uint> possibleVertex, double alpha, double beta);
+	double CalculateProbability(double alpha, double beta, double pheromone, int distance);
 	void GoBack();
 	void InitVisitedVertices(uint numberVertices);
 	double CalculatePheromoneValue(uint vertex1, uint vertex2, double factor, Graph* graph);

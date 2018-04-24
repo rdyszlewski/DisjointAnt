@@ -27,6 +27,9 @@ private:
 	void UpdateBestPaths();
 	void ZeroBestPaths();
 
+	void EvaporatePheromone(double factor);
+	void FixPheromoneValue();
+
 	void SaveResult(int iteration, std::vector<int>& iterationResults);
 private:
 	std::vector<Ant*> m_ants;

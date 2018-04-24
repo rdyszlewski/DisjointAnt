@@ -108,7 +108,7 @@ void AntColony::StartAnts()
 void AntColony::StartAnt(Ant* ant)
 {
 	//TODO zrobiæ utworzenie nowego w¹tku
-	ant->LookFor(m_graph, m_best_paths_matrix);
+	ant->LookFor(m_graph, m_best_paths_matrix, m_alpha, m_beta);
 }
 
 void AntColony::ChooseBestPaths()
@@ -175,6 +175,41 @@ int AntColony::CalculateObjectiveFunction()
 		result += m_best_distance[i];
 	}
 	return result;
+}
+
+void AntColony::EvaporatePheromone(double factor)
+{
+	const int numberColony = m_number_colony;
+	std::function<void(Graph::Edge*)> func = [&](Graph::Edge* x)
+	{
+		for (int colony = 0; colony < numberColony; colony++)
+		{
+			x->pheromon[colony] -= factor;
+		}
+	};
+	m_graph->ForEach(func);
+}
+
+void AntColony::FixPheromoneValue()
+{
+	const int numberColony = m_number_colony;
+	const int minPheromone = MIN_PHEROMONE;
+	const int maxPheromone = MAX_PHEROMONE;
+	std::function<void(Graph::Edge*)> func = [&](Graph::Edge* x)
+	{
+		for (int colony = 0; colony < numberColony; colony++)
+		{
+			if (x->pheromon[colony] < minPheromone)
+			{
+				x->pheromon[colony] = minPheromone;
+			} 
+			else if(x->pheromon[colony] > maxPheromone)
+			{
+				x->pheromon[colony] = maxPheromone;
+			}
+		}
+	};
+	m_graph->ForEach(func);
 }
 
 void AntColony::SetWriteListener(WriteListener* writeListener)

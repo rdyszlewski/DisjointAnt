@@ -2,6 +2,7 @@
 #include <map>
 #include <vector>
 #include <iostream>
+#include <functional>
 
 class Graph
 {
@@ -69,8 +70,11 @@ public:
 	}
 	void ResetPheromones(double value);
 
+	void ForEach(std::function<void(Graph::Edge*)> lambda);
+
 private:
 	std::map<int, Edge*>* m_data;
+	
 	//std::vector<std::map<int, Edge>> m_data;
 	int* m_sources;
 	int* m_targets;
