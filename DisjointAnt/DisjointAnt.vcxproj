@@ -120,8 +120,11 @@
     <ClCompile Include="Graph.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="ResultWriter.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ResultWriter.hpp" />
+    <ClInclude Include="WriteListener.hpp" />
     <ClInclude Include="Ant.h" />
     <ClInclude Include="AntColony.hpp" />
     <ClInclude Include="Graph.hpp" />

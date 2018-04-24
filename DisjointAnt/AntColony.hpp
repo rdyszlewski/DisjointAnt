@@ -2,31 +2,37 @@
 #include "Graph.hpp"
 #include "Ant.h"
 #include <limits>
+#include "WriteListener.hpp"
 
-class AntColony
+class AntColony 
 {
 public:
 	AntColony(int steps);
 	~AntColony();
 
 	void Start(Graph* graph, int stepNumber, int antInColony, float alpha, float p, float beta);
+	inline void SetWriteListener(WriteListener* writeListener);
 private:
 	void InitPheromones(Graph* graph);
 	std::vector<Ant*> CreateAnts(int numberAnts, int numberColony, Graph* graph);
 	void StartAnts();
 	void StartAnt(Ant* ant);
-	void ChooseBestPath();
+	void ChooseBestPaths();
 	void ResetAnts();
 
 	void ReleaseAnts();
 	void Init(Graph* graph, int stepNumber, int antInColony, float alpha, float p, float beta);
 
 	int CalculateObjectiveFunction();
+	void UpdateBestPaths();
+	void ZeroBestPaths();
+
+	void SaveResult(int iteration, std::vector<int>& iterationResults);
 private:
 	std::vector<Ant*> m_ants;
 	Graph* m_graph;
 
-	int m_colony_number; //TODO zmieniæ nazwê
+	int m_number_colony; //TODO zmieniæ nazwê
 	int m_total_ants;
 
 	// PARAMETRY
@@ -39,9 +45,12 @@ private:
 	int m_current_step;
 
 	//TODO zainicjowaæ to
+	unsigned short** m_best_paths_matrix;
 	std::vector<std::vector<unsigned int>> m_best_path;
 	std::vector<Ant*> m_best_ant;
 	std::vector<int> m_best_distance;
+
+	WriteListener* m_write_listener;
 
 private:
 	const double MIN_PHEROMONE = 0.001;

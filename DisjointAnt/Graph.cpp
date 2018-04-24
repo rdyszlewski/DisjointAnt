@@ -49,41 +49,6 @@ void Graph::Init(int* data, int verticesNumber, int* sources, int* targets)
 	}
 }
 
-int Graph::GetSource(int sourceNumber) {
-	if (sourceNumber >= 0 && sourceNumber < m_pairs_number) {
-		return m_sources[sourceNumber];
-	}
-}
-
-int Graph::GetTarget(int targetNumber) {
-	if (targetNumber >= 0 && targetNumber < m_pairs_number) {
-		return m_targets[targetNumber];
-	}
-}
-
-int Graph::GetWeight(int firstVertex, int secondVertex) {
-	if (m_data[firstVertex].count(secondVertex)) {
-		return m_data[firstVertex].at(secondVertex)->weight;
-	}
-	return 0;
-}
-
-int Graph::GetPheromone(int firstVertex, int secondVertex, int colony) {
-	if (m_data[firstVertex].count(secondVertex)) {
-		return m_data[firstVertex].at(secondVertex)->pheromon[colony];
-	}
-	return 0;
-}
-
-int Graph::GetPairsNumber() {
-	return m_pairs_number;
-}
-
-int Graph::GetVerticesNumber()
-{
-	return m_vertices_number;
-}
-
 std::vector<unsigned int> Graph::GetPossibleVertex(int vertex)
 {
 	std::vector<unsigned int> result;
@@ -97,21 +62,12 @@ std::vector<unsigned int> Graph::GetPossibleVertex(int vertex)
 	return result;
 }
 
-void Graph::SetPheromone(int firstVertex, int secondVertex, int colony, double value) {
-	m_data[firstVertex].at(secondVertex)->pheromon[colony] = value;
-}
-
-void Graph::AddPheromone(int firstVertex, int secondVertex, int colony, double value)
-{
-	m_data[firstVertex].at(secondVertex)->pheromon[colony] += value;
-}
-
 void Graph::ResetPheromones(double value)
 {
 	std::map<int, Edge*>::iterator it;
 	for (int vertex = 0; vertex < m_vertices_number; vertex++)
 	{
-		for (it = m_data[vertex].begin(); it != m_data[vertex].end(); i++)
+		for (it = m_data[vertex].begin(); it != m_data[vertex].end(); it++)
 		{
 			for (int colony = 0; colony < m_pairs_number; colony++)
 			{

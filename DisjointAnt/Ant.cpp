@@ -47,22 +47,22 @@ void Ant::UpdatePheromone(Graph* graph, double factor) {
 ///		je¿eli nie znaleziono pasuj¹cego wierzcho³ka
 ///			wróæ do poprzedniego wierzcho³ka
 ///			powtórz szukanie 
-void Ant::LookFor(Graph* graph)
+void Ant::LookFor(Graph* graph, unsigned short** bestPaths)
 {
 	// TODO mo¿e byæ konieczne ustawienie warunku, ¿e mrówka nie mo¿e dotrzeæ do koñca
 	while (m_current_vertex != m_end_vertex)
 	{
-		Step(graph);
+		Step(graph, bestPaths);
 	}
 }
 
-void Ant::Step(Graph* graph)
+void Ant::Step(Graph* graph, unsigned short** bestPaths)
 {
 	bool findNext = false;
 	while (!findNext)
 	{
 		std::vector<uint> possibleVertex = graph->GetPossibleVertex(m_current_vertex);
-		possibleVertex = ExcludePossibleVertex(possibleVertex);
+		possibleVertex = ExcludePossibleVertex(possibleVertex, bestPaths);
 		if (!possibleVertex.empty())
 		{
 			uint vertex = RandomVertex(possibleVertex);
@@ -76,22 +76,21 @@ void Ant::Step(Graph* graph)
 	}	
 }
 
-std::vector<uint>& Ant::ExcludePossibleVertex(std::vector<uint>& possibleVertex)
+std::vector<uint>& Ant::ExcludePossibleVertex(std::vector<uint>& possibleVertex, unsigned short** bestPaths)
 {
-	//TODO dokoñczyæ to 
 	//TODO ustawiæ poprane ograniczenia
-
 	//TODO sprawdziæ, czy to dzia³a
-	std::remove_if(possibleVertex.begin(), possibleVertex.end(),
-		[](auto& x) {return x->m_visited_vertices[x]}),
-		possibleVertex.end();
+	
+	// usuwamy wierzcho³ki ju¿ odwiedzone 
+	// oraz wierzho³ki zajête prez mrówki z innego mrowiska
+	possibleVertex.erase(std::remove_if(possibleVertex.begin(), possibleVertex.end(),
+		[&](auto& x) {return m_visited_vertices[x]
+		|| (bestPaths[m_current_vertex][x] != m_colony
+			&& bestPaths[m_current_vertex][x] != 0); }),
+		possibleVertex.end());
+
 
 	return possibleVertex;
-}
-
-std::vector<uint> Ant::GetPath() const 
-{
-	return m_path;
 }
 
 void Ant::Reset()
@@ -103,16 +102,6 @@ void Ant::Reset()
 		}
 	}
 	m_current_vertex = m_home_vertex;
-}
-
-uint Ant::GetId()
-{
-	return m_id;
-}
-
-uint Ant::GetColony()
-{
-	return m_colony;
 }
 
 void Ant::Visit(uint vertex) 
