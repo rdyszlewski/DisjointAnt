@@ -11,17 +11,18 @@ public:
 		const int firstNode;
 		const int secondNode;
 		const int weight;
-		float* pheromon;
+		double* pheromon;
 
 		Edge(int firstNode, int secondNode, int weight,int numberPheromonTypes):firstNode(firstNode), secondNode(secondNode), weight(weight)
 		{
-			pheromon = new float[numberPheromonTypes];
+			pheromon = new double[numberPheromonTypes];
 		}
 	};
 	Graph();
 	~Graph();
 
-	void Init(int* data, int numberVertices, int* sources, int* targets);
+	/// k - liczba wejœæ/wyjœæ
+	void Init(int* data, int numberVertices, int* sources, int* targets, int k);
 	void Release();
 
 	inline int GetSource(int sourceNumber) 
@@ -43,7 +44,7 @@ public:
 		}
 		return 0;
 	}
-	inline int GetPheromone(int firstVertex, int secondVertex, int colony)
+	inline double GetPheromone(int firstVertex, int secondVertex, int colony)
 	{
 		if (m_data[firstVertex].count(secondVertex)) {
 			return m_data[firstVertex].at(secondVertex)->pheromon[colony];

@@ -32,10 +32,11 @@ private:
 
 	void SaveResult(int iteration, std::vector<int>& iterationResults);
 private:
+	// TODO zmieniæ to wektor wektorów mrówek. Pomo¿e to wypuszczaæ mrówki mrowiskami
 	std::vector<Ant*> m_ants;
 	Graph* m_graph;
 
-	int m_number_colony; //TODO zmieniæ nazwê
+	int m_number_colonies; //TODO zmieniæ nazwê
 	int m_total_ants;
 
 	// PARAMETRY
@@ -48,7 +49,7 @@ private:
 	int m_current_step;
 
 	//TODO zainicjowaæ to
-	unsigned short** m_best_paths_matrix;
+	short** m_best_paths_matrix;
 	std::vector<std::vector<unsigned int>> m_best_path;
 	std::vector<Ant*> m_best_ant;
 	std::vector<int> m_best_distance;

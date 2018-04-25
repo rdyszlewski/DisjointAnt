@@ -1,7 +1,7 @@
 #include "AntColony.hpp"
 
 
-
+//TODO przypatrzeæ siê, czy te stepsy w tym miejsu maj¹ sens
 AntColony::AntColony(int steps):m_steps(steps), m_current_step(0)
 {
 }
@@ -11,11 +11,11 @@ AntColony::~AntColony()
 {
 }
 
-void AntColony::Start(Graph* graph, int stepNumber, int antInColony, float alpha, float p, float beta) {
-	
+void AntColony::Start(Graph* graph, int stepNumber, int antInColony, float alpha, float p, float beta)
+{
 	Init(graph, stepNumber, antInColony, alpha, p, beta);
 	InitPheromones(m_graph);
-	m_ants = CreateAnts(m_ant_number, m_number_colony, m_graph);
+	m_ants = CreateAnts(m_ant_number, m_number_colonies, m_graph);
 	// pêtla wykonywana przez okreœlon¹ liczbê kroków
 	//TODO dodaæ jeszcze jeden warunek: je¿eli nic siê nie zmieni³o przez okreœlon¹ liczbê kroków koñczymy
 	std::vector<int> iterationResults;
@@ -30,13 +30,14 @@ void AntColony::Start(Graph* graph, int stepNumber, int antInColony, float alpha
 			SaveResult(step, iterationResults);
 		}
 	}
+	std::cout << CalculateObjectiveFunction();
 }
 
 void AntColony::SaveResult(int iteration, std::vector<int>& iterationResults)
 {
 	iterationResults.clear();
 	// wynik dla ka¿dego mrowiska
-	for (int colony = 0; colony < m_number_colony; colony++)
+	for (int colony = 0; colony < m_number_colonies; colony++)
 	{
 		iterationResults.push_back(m_best_distance[colony]);
 	}
@@ -55,19 +56,23 @@ void AntColony::Init(Graph* graph, int stepNumber, int antInColony, float alpha,
 	m_p = p;
 	m_beta = beta;
 
-	m_number_colony = m_graph->GetPairsNumber();
-	for (int i = 0; m_number_colony; i++)
+	m_number_colonies = m_graph->GetPairsNumber();
+	for (int i = 0;i< m_number_colonies; i++)
 	{
-		m_best_path[i] = std::vector<unsigned int>();
-		m_best_ant[i] = nullptr;
-		m_best_distance[i] = std::numeric_limits<int>::max();
+		m_best_path.push_back(std::vector<unsigned int>());
+		m_best_ant.push_back(nullptr);
+		m_best_distance.push_back(std::numeric_limits<int>::max());
 	}
-
+	
 	int numberVertices = m_graph->GetVerticesNumber();
-	m_best_paths_matrix = new unsigned short*[numberVertices];
+	m_best_paths_matrix = new short*[numberVertices];
 	for (int i = 0; i < numberVertices; i++)
 	{
-		m_best_paths_matrix[i] = new unsigned short[numberVertices];
+		m_best_paths_matrix[i] = new short[numberVertices];
+		for (int j = 0; j < numberVertices; j++)
+		{
+			m_best_paths_matrix[i][j] = -1;
+		}
 	}
 
 }
@@ -75,7 +80,18 @@ void AntColony::Init(Graph* graph, int stepNumber, int antInColony, float alpha,
 void AntColony::InitPheromones(Graph* graph)
 {
 	//TODO wszystko mo¿na przenieœæ do tej klasy
-	graph->ResetPheromones(MIN_PHEROMONE);
+	const int numberColonies = m_number_colonies;
+	const double minPheromone = MIN_PHEROMONE;
+
+	std::function<void(Graph::Edge*)> func = [&](Graph::Edge* x)
+	{
+		for (int colony = 0; colony < numberColonies; colony++)
+		{
+			x->pheromon[colony] = minPheromone;
+		}
+	};
+
+	graph->ForEach(func);
 }
 
 std::vector<Ant*> AntColony::CreateAnts(int numberAnts, int numberColony, Graph* graph)
@@ -117,7 +133,7 @@ void AntColony::ChooseBestPaths()
 	for (Ant* ant : m_ants)
 	{
 		int colony = ant->GetColony();
-		int distance = ant->GetDistance();
+		int distance = ant->GetDistance(m_graph);
 		if (distance < m_best_distance[colony]) {
 			m_best_distance[colony] = distance;
 			m_best_ant[colony] = ant;
@@ -132,8 +148,11 @@ void AntColony::ZeroBestPaths()
 	int vertices = m_graph->GetVerticesNumber();
 	for (std::vector<uint> path: m_best_path)
 	{
-		for (int vertex = 0; vertex < vertices-1; vertex++) {
-			m_best_paths_matrix[vertex][vertex + 1] = 0;
+		int size = path.size();
+		for (int vertex = 0; vertex < size-1; vertex++) {
+			int index1 = path[vertex];
+			int index2 = path[vertex + 1];
+			m_best_paths_matrix[index1][index2] = -1;
 		}
 	}
 }
@@ -141,11 +160,23 @@ void AntColony::ZeroBestPaths()
 void AntColony::UpdateBestPaths()
 {
 	int vertices = m_graph->GetVerticesNumber();
-	for (int colony = 0; colony< m_number_colony; colony++)
+	for (int colony = 0; colony< m_number_colonies; colony++)
 	{
-		for (int vertex = 0; vertex < vertices - 1; vertex++) {
-			m_best_paths_matrix[vertex][vertex + 1] = colony;
+		int size = m_best_path[colony].size();
+		for (int i = 0; i < size-1; i++)
+		{
+			int index1 = m_best_path[colony][i];
+			int index2 = m_best_path[colony][i + 1];
+			m_best_paths_matrix[index1][index2] = colony;
 		}
+	}
+	for (int i = 0; i < vertices; i++)
+	{
+		for (int j = 0; j < vertices; j++)
+		{
+			std::cout << m_best_paths_matrix[i][j] << " ";
+		}
+		std::cout << std::endl;
 	}
 }
 
@@ -179,7 +210,7 @@ int AntColony::CalculateObjectiveFunction()
 
 void AntColony::EvaporatePheromone(double factor)
 {
-	const int numberColony = m_number_colony;
+	const int numberColony = m_number_colonies;
 	std::function<void(Graph::Edge*)> func = [&](Graph::Edge* x)
 	{
 		for (int colony = 0; colony < numberColony; colony++)
@@ -192,7 +223,7 @@ void AntColony::EvaporatePheromone(double factor)
 
 void AntColony::FixPheromoneValue()
 {
-	const int numberColony = m_number_colony;
+	const int numberColony = m_number_colonies;
 	const int minPheromone = MIN_PHEROMONE;
 	const int maxPheromone = MAX_PHEROMONE;
 	std::function<void(Graph::Edge*)> func = [&](Graph::Edge* x)

@@ -9,7 +9,7 @@ Graph::~Graph()
 {
 }
 
-void Graph::Init(int* data, int verticesNumber, int* sources, int* targets) 
+void Graph::Init(int* data, int verticesNumber, int* sources, int* targets, int k) 
 {
 	m_vertices_number = verticesNumber;
 
@@ -18,7 +18,7 @@ void Graph::Init(int* data, int verticesNumber, int* sources, int* targets)
 		m_data[i] = std::map<int, Edge*>();
 	}
 
-	int m_pairs_number = sizeof(sources) / sizeof(int);
+	m_pairs_number = k;
 	m_sources = new int[m_pairs_number];
 	for (int i = 0; i < m_pairs_number; i++) {
 		m_sources[i] = sources[i];

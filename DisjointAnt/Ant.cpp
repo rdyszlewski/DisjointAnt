@@ -2,6 +2,7 @@
 #include <math.h>
 #include <cassert>
 #include <random>
+#include <algorithm>
 
 Ant::Ant(uint id, uint colony, uint numberInColony, 
 	uint homeVertex, uint endVertex, uint numberVertices):
@@ -17,11 +18,14 @@ Ant::~Ant()
 	delete m_visited_vertices;
 }
 
-const uint Ant::GetDistance() const
+const uint Ant::GetDistance(Graph* graph) const
 {
 	uint distance = 0;
-	for (uint weight : m_path) {
-		distance += weight;
+	int size = m_path.size();
+	
+	for (int i = 0; i < size - 1; i++)
+	{
+		distance += graph->GetWeight(m_path[i], m_path[i + 1]);
 	}
 	return distance;
 }
@@ -43,7 +47,7 @@ void Ant::UpdatePheromone(Graph* graph, double factor) {
 		graph->AddPheromone(vertex1, vertex2, m_colony, value);
 	}*/
 
-	int distance = GetDistance();
+	int distance = GetDistance(graph);
 	double pheromoneValue = factor / distance; // TODO sprawdziæ, czy type bêd¹ siê zgadzaæ
 	int pathSize = m_path.size();
 	for (int i = 0; i < pathSize-1; i++)
@@ -63,8 +67,9 @@ void Ant::UpdatePheromone(Graph* graph, double factor) {
 ///		je¿eli nie znaleziono pasuj¹cego wierzcho³ka
 ///			wróæ do poprzedniego wierzcho³ka
 ///			powtórz szukanie 
-void Ant::LookFor(Graph* graph, unsigned short** bestPaths, double alpha, double beta)
+void Ant::LookFor(Graph* graph, short** bestPaths, double alpha, double beta)
 {
+	m_path.push_back(m_home_vertex);
 	// TODO mo¿e byæ konieczne ustawienie warunku, ¿e mrówka nie mo¿e dotrzeæ do koñca
 	while (m_current_vertex != m_end_vertex)
 	{
@@ -72,7 +77,7 @@ void Ant::LookFor(Graph* graph, unsigned short** bestPaths, double alpha, double
 	}
 }
 
-void Ant::Step(Graph* graph, unsigned short** bestPaths, double alpha, double beta)
+void Ant::Step(Graph* graph, short** bestPaths, double alpha, double beta)
 {
 	bool findNext = false;
 	while (!findNext)
@@ -81,7 +86,9 @@ void Ant::Step(Graph* graph, unsigned short** bestPaths, double alpha, double be
 		possibleVertex = ExcludePossibleVertex(possibleVertex, bestPaths);
 		if (!possibleVertex.empty())
 		{
-			uint vertex = RandomVertex(graph,possibleVertex,alpha, beta);
+			//TODO mo¿na tutaj jakoœ uwzglêdniaæ to, ¿eby mrówki nie próbowa³y wchodziæ
+			// do nie swoich wyjœæ
+			uint vertex = RandomVertex(graph, possibleVertex,alpha, beta);
 			Visit(vertex);
 			findNext = true;
 		}
@@ -92,7 +99,7 @@ void Ant::Step(Graph* graph, unsigned short** bestPaths, double alpha, double be
 	}	
 }
 
-std::vector<uint>& Ant::ExcludePossibleVertex(std::vector<uint>& possibleVertex, unsigned short** bestPaths)
+std::vector<uint> Ant::ExcludePossibleVertex(std::vector<uint>& possibleVertex, short** bestPaths)
 {
 	//TODO ustawiæ poprane ograniczenia
 	//TODO sprawdziæ, czy to dzia³a
@@ -108,16 +115,17 @@ std::vector<uint>& Ant::ExcludePossibleVertex(std::vector<uint>& possibleVertex,
 	std::vector<uint> result;
 	for (uint vertex : possibleVertex)
 	{
+		//TODO ubraæ to w jakieœ ³adne metody
 		if (!m_visited_vertices[vertex] && (
-			bestPaths[m_current_vertex][vertex] != m_colony
-			&& bestPaths[m_current_vertex][vertex] != 0
+			bestPaths[m_current_vertex][vertex] == m_colony
+			|| bestPaths[m_current_vertex][vertex] == -1
 			)) 
 		{
 			result.push_back(vertex);
 		}
 	}
 
-	return result;
+	return std::move(result);
 }
 
 void Ant::Reset()
@@ -177,13 +185,15 @@ double Ant::CalculateProbability(double alpha, double beta, double pheromone, in
 {
 	assert(distance > 0);
 	return
-		(pow(pheromone, alpha) - pow(1 / distance, beta));
+		(pow(pheromone, alpha) * pow(1 / (float)distance, beta));
 }
 
 void Ant::GoBack()
 {
-	uint vertex = m_path.back();
 	m_path.pop_back();
+	uint vertex = m_path.back();
+	m_path.pop_back(); //œci¹gamy te¿ wierzcho³ek, który zaraz zostanie odwiedzony
+	Visit(vertex);
 }
 
 void Ant::InitVisitedVertices(uint numberVertices)
