@@ -1,5 +1,5 @@
 #include "AntColony.hpp"
-
+#include "WriteListener.hpp"
 
 //TODO przypatrzeæ siê, czy te stepsy w tym miejsu maj¹ sens
 AntColony::AntColony(int steps):m_steps(steps), m_current_step(0)
@@ -241,9 +241,4 @@ void AntColony::FixPheromoneValue()
 		}
 	};
 	m_graph->ForEach(func);
-}
-
-void AntColony::SetWriteListener(WriteListener* writeListener)
-{
-	m_write_listener = writeListener;
 }

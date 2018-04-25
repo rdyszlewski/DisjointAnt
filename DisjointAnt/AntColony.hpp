@@ -2,7 +2,8 @@
 #include "Graph.hpp"
 #include "Ant.h"
 #include <limits>
-#include "WriteListener.hpp"
+
+class WriteListener;
 
 class AntColony 
 {
@@ -11,7 +12,10 @@ public:
 	~AntColony();
 
 	void Start(Graph* graph, int stepNumber, int antInColony, float alpha, float p, float beta);
-	inline void SetWriteListener(WriteListener* writeListener);
+	inline void SetWriteListener(WriteListener* writeListener)
+	{
+		m_write_listener = writeListener;
+	}
 private:
 	void InitPheromones(Graph* graph);
 	std::vector<Ant*> CreateAnts(int numberAnts, int numberColony, Graph* graph);
