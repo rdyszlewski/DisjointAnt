@@ -70,6 +70,7 @@ void Ant::UpdatePheromone(Graph* graph, double factor) {
 void Ant::LookFor(Graph* graph, short** bestPaths, double alpha, double beta)
 {
 	m_path.push_back(m_home_vertex);
+	m_current_vertex = m_home_vertex;
 	// TODO mo¿e byæ konieczne ustawienie warunku, ¿e mrówka nie mo¿e dotrzeæ do koñca
 	while (m_current_vertex != m_end_vertex)
 	{

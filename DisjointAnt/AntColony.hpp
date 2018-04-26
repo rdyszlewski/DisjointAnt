@@ -18,26 +18,26 @@ public:
 	}
 private:
 	void InitPheromones(Graph* graph);
-	std::vector<Ant*> CreateAnts(int numberAnts, int numberColony, Graph* graph);
-	void StartAnts();
+	std::vector<std::vector<Ant*>> CreateAnts(int numberAnts, int numberColony, Graph* graph);
+	void StartAnts(int colony);
 	void StartAnt(Ant* ant);
-	void ChooseBestPaths();
+	void ChooseBestPath(int colony);
 	void ResetAnts();
 
 	void ReleaseAnts();
 	void Init(Graph* graph, int stepNumber, int antInColony, float alpha, float p, float beta);
 
 	int CalculateObjectiveFunction();
-	void UpdateBestPaths();
-	void ZeroBestPaths();
+	void UpdateBestPath(int colony);
+	void ZeroBestPath(int colony);
 
 	void EvaporatePheromone(double factor);
 	void FixPheromoneValue();
 
-	void SaveResult(int iteration, std::vector<int>& iterationResults);
+	void SaveResult(int iteration, int objectiveFunction);
 private:
 	// TODO zmieniæ to wektor wektorów mrówek. Pomo¿e to wypuszczaæ mrówki mrowiskami
-	std::vector<Ant*> m_ants;
+	std::vector<std::vector<Ant*>> m_ants;
 	Graph* m_graph;
 
 	int m_number_colonies; //TODO zmieniæ nazwê
@@ -52,7 +52,6 @@ private:
 	int m_steps;
 	int m_current_step;
 
-	//TODO zainicjowaæ to
 	short** m_best_paths_matrix;
 	std::vector<std::vector<unsigned int>> m_best_path;
 	std::vector<Ant*> m_best_ant;
@@ -60,8 +59,14 @@ private:
 
 	WriteListener* m_write_listener;
 
+	// zmienne pomagaj¹ce wykryæ zmianê funkcji celu w kolenych iteracjach
+	double m_last_objective_function;
+	int m_same_counter;
+
 private:
 	const double MIN_PHEROMONE = 0.001;
 	const double MAX_PHEROMONE = 0.999;
+
+	const int MAX_SAME_COUNTER = 5;
 };
 

@@ -19,31 +19,49 @@ void AntColony::Start(Graph* graph, int stepNumber, int antInColony, float alpha
 	// pêtla wykonywana przez okreœlon¹ liczbê kroków
 	//TODO dodaæ jeszcze jeden warunek: je¿eli nic siê nie zmieni³o przez okreœlon¹ liczbê kroków koñczymy
 	std::vector<int> iterationResults;
-	for (int step = 0; step < m_step_number; step++)
+	int iteration = 0;
+	// algorytm wykonywany jest przez pewn¹ iloœæ iteracji, lub dopóki wartoœæ funkcji celu nie zmieni
+	// siê przez okreœlon¹ liczbê iteracji
+	while(iteration != m_step_number && m_same_counter != MAX_SAME_COUNTER)
 	{
-		StartAnts(); //startujemy mrówki
-		ChooseBestPaths();
+		// mrówki z kolejnego mrowiska s¹ puszczane dopiero po zakoñczeniu dzia³añ
+		// przez mrówki z poprzedniego mrowiska
+		for (int colony = 0; colony < m_number_colonies; colony++)
+		{
+			StartAnts(colony);
+			ChooseBestPath(colony);
+		}
 		ResetAnts();
+
+
+		int objectiveFunctionResult = CalculateObjectiveFunction();
+		if (m_last_objective_function == objectiveFunctionResult)
+		{
+			m_same_counter++;
+		}
+		else {
+			m_same_counter = 0;
+			m_last_objective_function = objectiveFunctionResult;
+		}
 
 		if (m_write_listener != nullptr)
 		{
-			SaveResult(step, iterationResults);
+			SaveResult(iteration, objectiveFunctionResult);
 		}
+		iteration++;
 	}
-	std::cout << CalculateObjectiveFunction();
 }
 
-void AntColony::SaveResult(int iteration, std::vector<int>& iterationResults)
+void AntColony::SaveResult(int iteration, int objectiveFunction)
 {
-	iterationResults.clear();
+	std::vector<int> iterationResults;
 	// wynik dla ka¿dego mrowiska
 	for (int colony = 0; colony < m_number_colonies; colony++)
 	{
 		iterationResults.push_back(m_best_distance[colony]);
 	}
 	//wynik funkcji celu
-	int objectiveFunctionResult = CalculateObjectiveFunction();
-	iterationResults.push_back(objectiveFunctionResult);
+	iterationResults.push_back(objectiveFunction);
 	m_write_listener->writeResult(iteration, iterationResults);
 }
 
@@ -55,15 +73,17 @@ void AntColony::Init(Graph* graph, int stepNumber, int antInColony, float alpha,
 	m_alpha = alpha;
 	m_p = p;
 	m_beta = beta;
+	m_last_objective_function = 0;
+	m_same_counter = 0;
 
 	m_number_colonies = m_graph->GetPairsNumber();
-	for (int i = 0;i< m_number_colonies; i++)
+	for (int i = 0; i < m_number_colonies; i++)
 	{
 		m_best_path.push_back(std::vector<unsigned int>());
 		m_best_ant.push_back(nullptr);
 		m_best_distance.push_back(std::numeric_limits<int>::max());
 	}
-	
+
 	int numberVertices = m_graph->GetVerticesNumber();
 	m_best_paths_matrix = new short*[numberVertices];
 	for (int i = 0; i < numberVertices; i++)
@@ -94,28 +114,34 @@ void AntColony::InitPheromones(Graph* graph)
 	graph->ForEach(func);
 }
 
-std::vector<Ant*> AntColony::CreateAnts(int numberAnts, int numberColony, Graph* graph)
+std::vector<std::vector<Ant*>> AntColony::CreateAnts(int numberAnts, int numberColonies, Graph* graph)
 {
-	std::vector<Ant*> result;
+	std::vector<std::vector<Ant*>> result;
 	int totalAnts = 0;
 	Ant* newAnt;
 	int numberVertices = graph->GetVerticesNumber();
-	for (int colony = 0; colony < numberColony; colony++)
+	for (int colony = 0; colony < numberColonies; colony++)
 	{
+		std::vector<Ant*> ants;
 		int homeVertex = graph->GetSource(colony);
 		int endVertex = graph->GetTarget(colony);
 		for (int ant = 0; ant < numberAnts; ant++)
 		{
 			newAnt = new Ant(totalAnts, colony, ant, homeVertex, endVertex, numberVertices);
-			result.push_back(newAnt);
+			ants.push_back(newAnt);
 		}
+		result.push_back(std::move(ants));
 	}
 	return result;
 }
 
-void AntColony::StartAnts()
+void AntColony::StartAnts(int colony)
 {
-	for (Ant* ant : m_ants)
+	/*for (Ant* ant : m_ants)
+	{
+		StartAnt(ant);
+	}*/
+	for (Ant* ant : m_ants[colony])
 	{
 		StartAnt(ant);
 	}
@@ -127,72 +153,66 @@ void AntColony::StartAnt(Ant* ant)
 	ant->LookFor(m_graph, m_best_paths_matrix, m_alpha, m_beta);
 }
 
-void AntColony::ChooseBestPaths()
+void AntColony::ChooseBestPath(int colony)
 {
-	ZeroBestPaths();
-	for (Ant* ant : m_ants)
+	ZeroBestPath(colony);
+	for (Ant* ant : m_ants[colony])
 	{
-		int colony = ant->GetColony();
 		int distance = ant->GetDistance(m_graph);
-		if (distance < m_best_distance[colony]) {
+		if (distance < m_best_distance[colony])
+		{
 			m_best_distance[colony] = distance;
 			m_best_ant[colony] = ant;
-			m_best_path[colony]= ant->GetPath();
+			m_best_path[colony] = ant->GetPath();
 		}
 	}
-	UpdateBestPaths();
+	UpdateBestPath(colony);
+
 }
 
-void AntColony::ZeroBestPaths()
+void AntColony::ZeroBestPath(int colony)
 {
 	int vertices = m_graph->GetVerticesNumber();
-	for (std::vector<uint> path: m_best_path)
+	int size = m_best_path[colony].size();
+	for (int vertex = 0; vertex < size - 1; vertex++)
 	{
-		int size = path.size();
-		for (int vertex = 0; vertex < size-1; vertex++) {
-			int index1 = path[vertex];
-			int index2 = path[vertex + 1];
-			m_best_paths_matrix[index1][index2] = -1;
-		}
+		int index1 = m_best_path[colony][vertex];
+		int index2 = m_best_path[colony][vertex + 1];
+		m_best_paths_matrix[index1][index2] = -1;
 	}
 }
 
-void AntColony::UpdateBestPaths()
+void AntColony::UpdateBestPath(int colony)
 {
-	int vertices = m_graph->GetVerticesNumber();
-	for (int colony = 0; colony< m_number_colonies; colony++)
+	int size = m_best_path[colony].size();
+	for (int i = 0; i < size - 1; i++)
 	{
-		int size = m_best_path[colony].size();
-		for (int i = 0; i < size-1; i++)
-		{
-			int index1 = m_best_path[colony][i];
-			int index2 = m_best_path[colony][i + 1];
-			m_best_paths_matrix[index1][index2] = colony;
-		}
-	}
-	for (int i = 0; i < vertices; i++)
-	{
-		for (int j = 0; j < vertices; j++)
-		{
-			std::cout << m_best_paths_matrix[i][j] << " ";
-		}
-		std::cout << std::endl;
+		int index1 = m_best_path[colony][i];
+		int index2 = m_best_path[colony][i + 1];
+		m_best_paths_matrix[index1][index2] = colony;
 	}
 }
 
 void AntColony::ResetAnts()
 {
-	for (Ant* ant : m_ants)
+	for (int colony = 0; colony < m_number_colonies; colony++)
 	{
-		ant->Reset();
+		for (Ant* ant : m_ants[colony])
+		{
+			ant->Reset();
+		}
 	}
 }
 
 void AntColony::ReleaseAnts()
 {
-	for (Ant* ant : m_ants)
+	for (int colony = 0; colony < m_number_colonies; colony++)
 	{
-		delete ant;
+		for (Ant* ant : m_ants[colony])
+		{
+			delete ant;
+		}
+		m_ants[colony].clear();
 	}
 	m_ants.clear();
 }
