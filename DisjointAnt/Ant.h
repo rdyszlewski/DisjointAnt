@@ -14,7 +14,10 @@ public:
 
 	const uint GetDistance(Graph* graph) const;
 	void UpdatePheromone(Graph* graph, double factor);
-	void LookFor(Graph* graph, short** bestPaths, double alpha, double beta);
+	/// szukanie œcie¿ki przez mrówkê
+	/// zwraca informacje, czy mrówka dotar³a do wyjœcia
+	/// wartoœæ false oznacza, ¿e mrówka nie znalaz³a rozwi¹zania
+	bool LookFor(Graph* graph, short** bestPaths, double alpha, double beta);
 	inline std::vector<uint> GetPath() const
 	{
 		return m_path;

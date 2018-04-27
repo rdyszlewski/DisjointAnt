@@ -67,15 +67,22 @@ void Ant::UpdatePheromone(Graph* graph, double factor) {
 ///		je¿eli nie znaleziono pasuj¹cego wierzcho³ka
 ///			wróæ do poprzedniego wierzcho³ka
 ///			powtórz szukanie 
-void Ant::LookFor(Graph* graph, short** bestPaths, double alpha, double beta)
+bool Ant::LookFor(Graph* graph, short** bestPaths, double alpha, double beta)
 {
 	m_path.push_back(m_home_vertex);
 	m_current_vertex = m_home_vertex;
 	// TODO mo¿e byæ konieczne ustawienie warunku, ¿e mrówka nie mo¿e dotrzeæ do koñca
-	while (m_current_vertex != m_end_vertex)
+	bool leaveHome = false;
+	while (m_current_vertex != m_end_vertex )
 	{
 		Step(graph, bestPaths, alpha, beta);
+		leaveHome = true;
+		if (leaveHome && m_current_vertex == m_home_vertex)
+		{
+			return false;
+		}
 	}
+	return true;
 }
 
 void Ant::Step(Graph* graph, short** bestPaths, double alpha, double beta)

@@ -3,16 +3,19 @@
 #include "Logger.hpp"
 #include "ResultWriter.hpp"
 #include "WriteListener.hpp"
+#include "Timer.hpp"
+
 
 class Listener : public WriteListener 
 {
 public:
 	Listener(Logger& logger, ResultWriter& writer) :m_logger(logger), m_writer(writer) {}
-	void writeResult(int iteration, std::vector<int> values)
+	
+	void WriteResult(int iteration, std::vector<int> values)
 	{
 		m_writer.WriteResult(iteration, values);
 	};
-	void writeLog(std::string message)
+	void WriteLog(std::string message)
 	{
 		m_logger.WriteLog(message);
 	};
@@ -42,9 +45,24 @@ int main()
 	graph.Init(data, 5, source, target, 2);
 	AntColony antColony(10);
 	antColony.SetWriteListener(writeListener);
+	Timer timer;
+	timer.Start("all");
 	antColony.Start(&graph, 10, 1, 1, 0.1, 1);
-	
+	double time = timer.GetTime("all");
+	std::cout << "Czas: " << time;
 	graph.Release();
+
+	std::vector<std::vector<unsigned int>> result = antColony.GetBestPaths();
+	std::cout << std::endl;
+	for (int i = 0; i < result.size(); i++)
+	{
+		for (int j = 0; j < result[i].size(); j++)
+		{
+			std::cout << result[i][j] << " ";
+		}
+		std::cout << std::endl;
+
+	}
 	system("pause");
 }
 

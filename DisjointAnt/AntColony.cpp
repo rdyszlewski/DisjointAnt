@@ -22,33 +22,68 @@ void AntColony::Start(Graph* graph, int stepNumber, int antInColony, float alpha
 	int iteration = 0;
 	// algorytm wykonywany jest przez pewn¹ iloœæ iteracji, lub dopóki wartoœæ funkcji celu nie zmieni
 	// siê przez okreœlon¹ liczbê iteracji
-	while(iteration != m_step_number && m_same_counter != MAX_SAME_COUNTER)
+	while(iteration != m_step_number && m_same_counter != m_max_same_counter)
 	{
+		m_found_solutions = 0;
 		// mrówki z kolejnego mrowiska s¹ puszczane dopiero po zakoñczeniu dzia³añ
 		// przez mrówki z poprzedniego mrowiska
 		for (int colony = 0; colony < m_number_colonies; colony++)
 		{
 			StartAnts(colony);
-			ChooseBestPath(colony);
+			ChooseBestPathInIteration(colony);
 		}
+		SummarizeIteration(iteration);
 		ResetAnts();
-
-
-		int objectiveFunctionResult = CalculateObjectiveFunction();
-		if (m_last_objective_function == objectiveFunctionResult)
-		{
-			m_same_counter++;
-		}
-		else {
-			m_same_counter = 0;
-			m_last_objective_function = objectiveFunctionResult;
-		}
-
-		if (m_write_listener != nullptr)
-		{
-			SaveResult(iteration, objectiveFunctionResult);
-		}
+		RandomColoniesOrders();
+		
 		iteration++;
+	}
+}
+
+void AntColony::SummarizeIteration(int iteration)
+{
+	int objectiveFunctionResult = CalculateObjectiveFunction();
+	ServeSameObjectiveFunction(objectiveFunctionResult);
+	ObjectiveResult newResult;
+	newResult.distance = objectiveFunctionResult;
+	newResult.numberPaths = m_found_solutions;
+	if (CompareObjectiveFunction(newResult, m_objective_result))
+	{
+		m_objective_result = newResult;
+		CopyBestPathsResults(m_best_paths_results, m_best_paths);
+	}
+
+
+	if (m_write_listener != nullptr)
+	{
+		SaveResult(iteration, objectiveFunctionResult);
+	}
+}
+
+void AntColony::CopyBestPathsResults(std::vector<std::vector<unsigned int>>& result, std::vector<std::vector<unsigned int>>& source)
+{
+	//TODO to prawdopodobnie bêdzie dzia³aæ Ÿle, poniewa¿ przepisujemy referencje
+	result = source;
+	
+	/*for (int i = 0; i < m_number_colonies; i++)
+	{
+		result[i].clear();
+		for (int j = 0; j < source[i].size(); j++)
+		{
+			result[i].push_back(source[i][j]);
+		}
+	}*/
+}
+
+void AntColony::ServeSameObjectiveFunction(int objectiveFunction)
+{
+	if (m_last_objective_function == objectiveFunction)
+	{
+		m_same_counter++;
+	}
+	else {
+		m_same_counter = 0;
+		m_last_objective_function = objectiveFunction;
 	}
 }
 
@@ -58,11 +93,11 @@ void AntColony::SaveResult(int iteration, int objectiveFunction)
 	// wynik dla ka¿dego mrowiska
 	for (int colony = 0; colony < m_number_colonies; colony++)
 	{
-		iterationResults.push_back(m_best_distance[colony]);
+		iterationResults.push_back(m_best_distances[colony]);
 	}
 	//wynik funkcji celu
 	iterationResults.push_back(objectiveFunction);
-	m_write_listener->writeResult(iteration, iterationResults);
+	m_write_listener->WriteResult(iteration, iterationResults);
 }
 
 void AntColony::Init(Graph* graph, int stepNumber, int antInColony, float alpha, float p, float beta)
@@ -75,26 +110,51 @@ void AntColony::Init(Graph* graph, int stepNumber, int antInColony, float alpha,
 	m_beta = beta;
 	m_last_objective_function = 0;
 	m_same_counter = 0;
+	m_max_same_counter = MAX_SAME_COUNTER;
 
 	m_number_colonies = m_graph->GetPairsNumber();
-	for (int i = 0; i < m_number_colonies; i++)
-	{
-		m_best_path.push_back(std::vector<unsigned int>());
-		m_best_ant.push_back(nullptr);
-		m_best_distance.push_back(std::numeric_limits<int>::max());
-	}
+	InitBestResults(m_number_colonies);
+	InitLastPathsMatrix();
+	InitColoniesOrders(m_number_colonies);
+	RandomColoniesOrders();
+}
 
+void AntColony::InitColoniesOrders(int numberColonies)
+{
+	for (int i = 0; i < numberColonies; i++)
+	{
+		m_orders.push_back(i);
+	}
+}
+
+void AntColony::InitBestResults(int numberColonies)
+{
+	
+	for (int i = 0; i < numberColonies; i++)
+	{
+		m_best_paths.push_back(std::vector<unsigned int>());
+		m_best_ants.push_back(nullptr);
+		m_best_distances.push_back(std::numeric_limits<int>::max());
+	}
+}
+
+void AntColony::InitLastPathsMatrix()
+{
 	int numberVertices = m_graph->GetVerticesNumber();
-	m_best_paths_matrix = new short*[numberVertices];
+	m_last_paths_matrix = new short*[numberVertices];
 	for (int i = 0; i < numberVertices; i++)
 	{
-		m_best_paths_matrix[i] = new short[numberVertices];
+		m_last_paths_matrix[i] = new short[numberVertices];
 		for (int j = 0; j < numberVertices; j++)
 		{
-			m_best_paths_matrix[i][j] = -1;
+			m_last_paths_matrix[i][j] = -1;
 		}
 	}
+}
 
+void AntColony::RandomColoniesOrders()
+{
+	std::random_shuffle(m_orders.begin(), m_orders.end());
 }
 
 void AntColony::InitPheromones(Graph* graph)
@@ -137,10 +197,6 @@ std::vector<std::vector<Ant*>> AntColony::CreateAnts(int numberAnts, int numberC
 
 void AntColony::StartAnts(int colony)
 {
-	/*for (Ant* ant : m_ants)
-	{
-		StartAnt(ant);
-	}*/
 	for (Ant* ant : m_ants[colony])
 	{
 		StartAnt(ant);
@@ -150,46 +206,52 @@ void AntColony::StartAnts(int colony)
 void AntColony::StartAnt(Ant* ant)
 {
 	//TODO zrobiæ utworzenie nowego w¹tku
-	ant->LookFor(m_graph, m_best_paths_matrix, m_alpha, m_beta);
+	ant->LookFor(m_graph, m_last_paths_matrix, m_alpha, m_beta);
 }
 
-void AntColony::ChooseBestPath(int colony)
+void AntColony::ChooseBestPathInIteration(int colony)
 {
+	//TODO sprawdziæ tutaj 
 	ZeroBestPath(colony);
+	int bestDistance = std::numeric_limits<int>::max();
 	for (Ant* ant : m_ants[colony])
 	{
 		int distance = ant->GetDistance(m_graph);
-		if (distance < m_best_distance[colony])
+		if (distance > 0)
 		{
-			m_best_distance[colony] = distance;
-			m_best_ant[colony] = ant;
-			m_best_path[colony] = ant->GetPath();
+			m_found_solutions++;
+		}
+		if (distance < bestDistance)
+		{
+			bestDistance = distance;
+			m_best_distances[colony] = distance;
+			m_best_ants[colony] = ant;
+			m_best_paths[colony] = ant->GetPath();
 		}
 	}
 	UpdateBestPath(colony);
-
 }
 
 void AntColony::ZeroBestPath(int colony)
 {
 	int vertices = m_graph->GetVerticesNumber();
-	int size = m_best_path[colony].size();
+	int size = m_best_paths[colony].size();
 	for (int vertex = 0; vertex < size - 1; vertex++)
 	{
-		int index1 = m_best_path[colony][vertex];
-		int index2 = m_best_path[colony][vertex + 1];
-		m_best_paths_matrix[index1][index2] = -1;
+		int index1 = m_best_paths[colony][vertex];
+		int index2 = m_best_paths[colony][vertex + 1];
+		m_last_paths_matrix[index1][index2] = -1;
 	}
 }
 
 void AntColony::UpdateBestPath(int colony)
 {
-	int size = m_best_path[colony].size();
+	int size = m_best_paths[colony].size();
 	for (int i = 0; i < size - 1; i++)
 	{
-		int index1 = m_best_path[colony][i];
-		int index2 = m_best_path[colony][i + 1];
-		m_best_paths_matrix[index1][index2] = colony;
+		int index1 = m_best_paths[colony][i];
+		int index2 = m_best_paths[colony][i + 1];
+		m_last_paths_matrix[index1][index2] = colony;
 	}
 }
 
@@ -223,7 +285,7 @@ int AntColony::CalculateObjectiveFunction()
 	int pairsNumber = m_graph->GetPairsNumber();
 	for (int i = 0; i < pairsNumber; i++)
 	{
-		result += m_best_distance[i];
+		result += m_best_distances[i];
 	}
 	return result;
 }
@@ -261,4 +323,17 @@ void AntColony::FixPheromoneValue()
 		}
 	};
 	m_graph->ForEach(func);
+}
+
+bool AntColony::CompareObjectiveFunction(ObjectiveResult result1, ObjectiveResult result2)
+{
+	if (result1.numberPaths > result2.numberPaths)
+	{
+		return true;
+	}
+	else if (result1.numberPaths == result2.numberPaths)
+	{
+		return result1.distance < result2.distance;
+	}
+	return false;
 }

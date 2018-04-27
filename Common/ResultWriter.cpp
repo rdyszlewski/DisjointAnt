@@ -20,7 +20,7 @@ void ResultWriter::OpenResultFile(const std::string path, const std::string file
 	}
 
 	std::string fullPath = path + "/" + filename;
-	m_result_file.open(fullPath, std::ios_base::app);
+	m_result_file.open(fullPath, std::ios::in | std::ofstream::trunc);
 }
 
 void ResultWriter::WriteHeader(std::vector<std::string>& headers)
