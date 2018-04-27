@@ -24,18 +24,12 @@
     <ClCompile Include="Ant.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
-    <ClCompile Include="Graph.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="AntColony.hpp">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
     <ClInclude Include="Ant.h">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="Graph.hpp">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
   </ItemGroup>

@@ -33,9 +33,13 @@ void print(Graph::Edge* x)
 int main()
 {
 	Graph graph = Graph();
-	int data[] = { 0,0,3,0,0,0,0,1,0,0,0,0,0,4,1,0,0,0,0,0,0,0,0,0,0 };
-	int source[] = { 0,1 };
-	int target[] = { 3,4 };
+	//int data[] = { 0,0,3,0,0,0,0,1,0,0,0,0,0,4,1,0,0,0,0,0,0,0,0,0,0 };
+	//int source[] = { 0,1 };
+	//int target[] = { 3,4 };
+
+	int data[] = { 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 6, 12, 0, 0, 0, 0, 0, 4, 5, 0, 0, 0, 0, 0, 0, 4, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+	int source[] = { 0, 1 };
+	int target[] = { 5, 6 };
 	Logger logger;
 	logger.OpenLogFile("D://log.txt");
 	ResultWriter writer;

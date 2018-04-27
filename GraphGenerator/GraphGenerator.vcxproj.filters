@@ -15,33 +15,15 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Logger.hpp">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="ResultWriter.hpp">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="Timer.hpp">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="WriteListener.hpp">
-      <Filter>Pliki nagłówkowe</Filter>
-    </ClInclude>
-    <ClInclude Include="Graph.hpp">
+    <ClInclude Include="GraphGenerator.hpp">
       <Filter>Pliki nagłówkowe</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Logger.cpp">
+    <ClCompile Include="GraphGenerator.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
-    <ClCompile Include="ResultWriter.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="Timer.cpp">
-      <Filter>Pliki źródłowe</Filter>
-    </ClCompile>
-    <ClCompile Include="Graph.cpp">
+    <ClCompile Include="main.cpp">
       <Filter>Pliki źródłowe</Filter>
     </ClCompile>
   </ItemGroup>

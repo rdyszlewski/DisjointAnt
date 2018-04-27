@@ -23,6 +23,7 @@ public:
 
 	/// k - liczba wejœæ/wyjœæ
 	void Init(int* data, int numberVertices, int* sources, int* targets, int k);
+	void Init(int** data, int numberVerices, int* sources, int* targets, int k);
 	void Release();
 
 	inline int GetSource(int sourceNumber) 
@@ -73,6 +74,8 @@ public:
 
 	void ForEach(std::function<void(Graph::Edge*)> lambda);
 
+private:
+	void InitCommon(int verticesNumber, int* sources, int* targets, int k);
 private:
 	std::map<int, Edge*>* m_data;
 	

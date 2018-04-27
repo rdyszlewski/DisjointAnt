@@ -19,12 +19,14 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Graph.hpp" />
     <ClInclude Include="Logger.hpp" />
     <ClInclude Include="ResultWriter.hpp" />
     <ClInclude Include="Timer.hpp" />
     <ClInclude Include="WriteListener.hpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Graph.cpp" />
     <ClCompile Include="Logger.cpp" />
     <ClCompile Include="ResultWriter.cpp" />
     <ClCompile Include="Timer.cpp" />

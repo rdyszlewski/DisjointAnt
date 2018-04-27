@@ -9,7 +9,23 @@ Graph::~Graph()
 {
 }
 
-void Graph::Init(int* data, int verticesNumber, int* sources, int* targets, int k) 
+void Graph::Init(int** data, int verticesNumber, int* sources, int* targets, int k)
+{
+	InitCommon(verticesNumber, sources, targets, k);
+
+	Edge* edge;
+	for (int i = 0; i < verticesNumber; i++) {
+		for (int j = 0; j < verticesNumber; j++) {
+			int value = data[i][j];
+			if (value > 0) {
+				edge = new Edge(i, j, value, verticesNumber);
+				m_data[i].insert(std::make_pair(j, edge));
+			}
+		}
+	}
+}
+
+void Graph::InitCommon(int verticesNumber, int* sources, int* targets, int k)
 {
 	m_vertices_number = verticesNumber;
 
@@ -28,6 +44,11 @@ void Graph::Init(int* data, int verticesNumber, int* sources, int* targets, int 
 	for (int i = 0; i < m_pairs_number; i++) {
 		m_targets[i] = targets[i];
 	}
+}
+
+void Graph::Init(int* data, int verticesNumber, int* sources, int* targets, int k) 
+{
+	InitCommon(verticesNumber, sources, targets, k);
 
 	Edge* edge;
 	for (int i = 0; i < verticesNumber; i++) {
@@ -39,15 +60,6 @@ void Graph::Init(int* data, int verticesNumber, int* sources, int* targets, int 
 			}
 		}
 	}
-
-	/*for (int i = 0; i < verticesNumber; i++) {
-		for (int j = 0; j < verticesNumber; j++) {
-			if (m_data[i].count(j)) {
-				std::cout << m_data[i].at(j)->weight;
-				std::cout << "\n";
-			}
-		}
-	}*/
 }
 
 std::vector<unsigned int> Graph::GetPossibleVertex(int vertex)
