@@ -322,7 +322,9 @@ void AntColony::UpdateBestPath(int colony)
 	{
 		int index1 = m_best_paths[colony][i];
 		int index2 = m_best_paths[colony][i + 1];
-		m_last_paths_matrix[index1][index2] = colony;
+		m_last_paths_matrix[index1][index2] = colony; //TODO to mo¿e byæ niepotrzebne
+		m_used_edges_matrix[index1][index2] = colony;
+
 	}
 }
 
