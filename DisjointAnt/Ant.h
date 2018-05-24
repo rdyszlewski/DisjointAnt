@@ -17,7 +17,7 @@ public:
 	/// szukanie œcie¿ki przez mrówkê
 	/// zwraca informacje, czy mrówka dotar³a do wyjœcia
 	/// wartoœæ false oznacza, ¿e mrówka nie znalaz³a rozwi¹zania
-	bool LookFor(Graph* graph, short** bestPaths, double alpha, double beta);
+	bool LookFor(Graph* graph, short** usedPaths, double alpha, double beta);
 	inline std::vector<uint> GetPath() const
 	{
 		return m_path;

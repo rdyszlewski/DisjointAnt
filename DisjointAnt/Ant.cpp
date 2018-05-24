@@ -12,7 +12,6 @@ Ant::Ant(uint id, uint colony, uint numberInColony,
 	InitVisitedVertices(numberVertices);
 }
 
-
 Ant::~Ant()
 {
 	delete m_visited_vertices;
@@ -33,20 +32,8 @@ const uint Ant::GetDistance(Graph* graph) const
 /// dodaje wartoœæ feromonu na krawêdziach nale¿¹cych do œcie¿ki, przez któr¹ przesz³a 
 /// mrówka
 //TODO okreœliæ jakiœ factor
-void Ant::UpdatePheromone(Graph* graph, double factor) {
-	//TODO 
-	// uaktualnienie feromonu na œcie¿ce 
-	/*int pathSize = m_path.size();
-	for (int i = 0; i < pathSize-1; i++)
-	{
-		uint vertex1 = m_path[i];
-		uint vertex2 = m_path[i + 1];
-		//TODO przerobiæ metodê na AddPheromone
-		//TODO ogarn¹æ, jaka wartoœæ feromonu powinna byc dodawana do œcie¿ki
-		uint value = CalculatePheromoneValue(vertex1, vertex2, factor, graph);
-		graph->AddPheromone(vertex1, vertex2, m_colony, value);
-	}*/
-
+void Ant::UpdatePheromone(Graph* graph, double factor) 
+{
 	int distance = GetDistance(graph);
 	double pheromoneValue = factor / distance; // TODO sprawdziæ, czy type bêd¹ siê zgadzaæ
 	int pathSize = m_path.size();
@@ -55,9 +42,9 @@ void Ant::UpdatePheromone(Graph* graph, double factor) {
 		uint vertex1 = m_path[i];
 		uint vertex2 = m_path[i + 1];
 		graph->AddPheromone(vertex1, vertex2, m_colony, pheromoneValue);
+		std::cout << graph->GetPheromone(vertex1, vertex2, m_colony) << " " ;
 	}
 }
-
 
 /// Rozpoczyna szukanie œcie¿ki przez mrówkê wed³ug algorytmu
 /// dopóki nie znaleziono odpowiedniego wyjœcia
@@ -67,7 +54,7 @@ void Ant::UpdatePheromone(Graph* graph, double factor) {
 ///		je¿eli nie znaleziono pasuj¹cego wierzcho³ka
 ///			wróæ do poprzedniego wierzcho³ka
 ///			powtórz szukanie 
-bool Ant::LookFor(Graph* graph, short** bestPaths, double alpha, double beta)
+bool Ant::LookFor(Graph* graph, short** usedPaths, double alpha, double beta)
 {
 	m_path.push_back(m_home_vertex);
 	m_current_vertex = m_home_vertex;
@@ -75,7 +62,7 @@ bool Ant::LookFor(Graph* graph, short** bestPaths, double alpha, double beta)
 	bool leaveHome = false;
 	while (m_current_vertex != m_end_vertex )
 	{
-		Step(graph, bestPaths, alpha, beta);
+		Step(graph, usedPaths, alpha, beta);
 		leaveHome = true;
 		if (leaveHome && m_current_vertex == m_home_vertex)
 		{
@@ -85,13 +72,13 @@ bool Ant::LookFor(Graph* graph, short** bestPaths, double alpha, double beta)
 	return true;
 }
 
-void Ant::Step(Graph* graph, short** bestPaths, double alpha, double beta)
+void Ant::Step(Graph* graph, short** usedPaths, double alpha, double beta)
 {
 	bool findNext = false;
 	while (!findNext)
 	{
 		std::vector<uint> possibleVertex = graph->GetPossibleVertex(m_current_vertex);
-		possibleVertex = ExcludePossibleVertex(possibleVertex, bestPaths);
+		possibleVertex = ExcludePossibleVertex(possibleVertex, usedPaths);
 		if (!possibleVertex.empty())
 		{
 			//TODO mo¿na tutaj jakoœ uwzglêdniaæ to, ¿eby mrówki nie próbowa³y wchodziæ
@@ -107,20 +94,13 @@ void Ant::Step(Graph* graph, short** bestPaths, double alpha, double beta)
 	}	
 }
 
-std::vector<uint> Ant::ExcludePossibleVertex(std::vector<uint>& possibleVertex, short** bestPaths)
+std::vector<uint> Ant::ExcludePossibleVertex(std::vector<uint>& possibleVertex, short** usedPaths)
 {
-	//TODO ustawiæ poprane ograniczenia
-	//TODO sprawdziæ, czy to dzia³a
-	
-	// usuwamy wierzcho³ki ju¿ odwiedzone 
-	// oraz wierzho³ki zajête prez mrówki z innego mrowiska
-	/*possibleVertex.erase(std::remove_if(possibleVertex.begin(), possibleVertex.end(),
-		[&](auto& x) {return m_visited_vertices[x]
-		|| (bestPaths[m_current_vertex][x] != m_colony
-			&& bestPaths[m_current_vertex][x] != 0); }),
-		possibleVertex.end());*/
+	// jeœli odwiedzi³a ju¿ tê krawêdŸ
+	// je¿eli œcie¿ka jest zajêta przez inne mrowisko
+	// co to kurwa znaczy ¿e jest zajêta?
 
-	std::vector<uint> result;
+	/*std::vector<uint> result;
 	for (uint vertex : possibleVertex)
 	{
 		//TODO ubraæ to w jakieœ ³adne metody
@@ -128,6 +108,19 @@ std::vector<uint> Ant::ExcludePossibleVertex(std::vector<uint>& possibleVertex, 
 			bestPaths[m_current_vertex][vertex] == m_colony
 			|| bestPaths[m_current_vertex][vertex] == -1
 			)) 
+		{
+			result.push_back(vertex);
+		}
+	}*/
+
+	std::vector<uint> result;
+	for (uint vertex : possibleVertex)
+	{
+		//TODO ubraæ to w jakieœ ³adne metody
+		if (!m_visited_vertices[vertex] && (
+			usedPaths[m_current_vertex][vertex] == m_colony
+			|| usedPaths[m_current_vertex][vertex] == -1
+			))
 		{
 			result.push_back(vertex);
 		}
@@ -178,14 +171,14 @@ uint Ant::RandomVertex(Graph* graph, std::vector<uint> possibleVertex, double al
 	int randInt = rand() % 100;
 	double value = (double)randInt / 100.0; //TODO sprawdziæ, czy bêdzie zwrócony odpowiedni typ
 
-	for (int i = 0; i < size; i++)
+	for (int i = size-1; i >=0; i--)
 	{
 		if (probabilites[i] < value)
 		{
 			return possibleVertex[i];
 		}
 	}
-	return possibleVertex[size-1]; //zwracamy ostatni¹ wartoœæ
+	return possibleVertex[0]; //zwracamy ostatni¹ wartoœæ
 }
 
 //TODO zmieniæ nazwê, poniewa¿ to nie liczy prawdopodobieñstwa
@@ -217,6 +210,7 @@ void Ant::InitVisitedVertices(uint numberVertices)
 double Ant::CalculatePheromoneValue(uint vertex1, uint vertex2, double factor, Graph* graph)
 {
 	uint weight = graph->GetWeight(vertex1, vertex2);
+	
 	//TODO napisaæ wzorek
 	//TODO tutaj mo¿e byæ rozró¿nienie, czy aktualizujemy ka¿d¹ wage odzielnie, czy wszystko razem
 	return factor;
