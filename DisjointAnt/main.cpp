@@ -33,9 +33,9 @@ void print(Graph::Edge* x)
 
 int main()
 {
-	const int STEP_NUMBER = 50;
-	const int ANTS_IN_COLONY = 20;
-	const float ALPHA = 1;
+	const int STEP_NUMBER = 200;
+	const int ANTS_IN_COLONY = 5;
+	const float ALPHA = 0.3;
 	const float P = 0.75;
 	const float BETA =1;
 

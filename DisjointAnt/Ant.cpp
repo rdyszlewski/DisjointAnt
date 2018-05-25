@@ -98,7 +98,6 @@ std::vector<uint> Ant::ExcludePossibleVertex(std::vector<uint>& possibleVertex, 
 {
 	// jeœli odwiedzi³a ju¿ tê krawêdŸ
 	// je¿eli œcie¿ka jest zajêta przez inne mrowisko
-	// co to kurwa znaczy ¿e jest zajêta?
 
 	/*std::vector<uint> result;
 	for (uint vertex : possibleVertex)
@@ -174,7 +173,7 @@ uint Ant::RandomVertex(Graph* graph, std::vector<uint> possibleVertex, double al
 	{
 		if (probabilites[i] < value)
 		{
-			return possibleVertex[i];
+			return possibleVertex[i+1];
 		}
 	}
 	return possibleVertex[0]; //zwracamy ostatni¹ wartoœæ
@@ -184,8 +183,12 @@ uint Ant::RandomVertex(Graph* graph, std::vector<uint> possibleVertex, double al
 double Ant::CalculateProbability(double alpha, double beta, double pheromone, int distance)
 {
 	assert(distance > 0);
-	double ETA = (double)pow((double)distance, beta);
-	double TAU = (double)pow(1.0/pheromone, alpha);
+	if (pheromone > 0.001)
+	{
+		std::cout << "";
+	}
+	double ETA = (double)pow(1.0/(double)distance, beta);
+	double TAU = (double)pow(pheromone, alpha);
 	return TAU * ETA;
 	/*return
 		((double)pow(pheromone, alpha) * (double)(pow(1 / (double)distance, beta)));*/

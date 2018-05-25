@@ -47,7 +47,7 @@ void AntColony::Start(Graph* graph, int stepNumber, int antInColony, float alpha
 void AntColony::HandlePheromone()
 {
 	//UpdatePheromone(0.75);
-	UpdatePheromone(3);
+	UpdatePheromone(2);
 	EvaporatePheromone();
 	FixPheromoneValue();
 }
