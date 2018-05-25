@@ -143,7 +143,8 @@ private:
 	{
 		for (int colony = 0; colony < m_number_colonies; colony++)
 		{
-			x->pheromon[colony] -= m_evaporate_factor;
+			//x->pheromon[colony] -= m_evaporate_factor;
+			x->pheromon[colony] -= x->pheromon[colony] * (1-m_p);
 		}
 	};
 };

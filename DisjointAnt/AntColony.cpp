@@ -46,7 +46,8 @@ void AntColony::Start(Graph* graph, int stepNumber, int antInColony, float alpha
 
 void AntColony::HandlePheromone()
 {
-	UpdatePheromone(0.5);
+	//UpdatePheromone(0.75);
+	UpdatePheromone(3);
 	EvaporatePheromone();
 	FixPheromoneValue();
 }
@@ -128,10 +129,6 @@ void AntColony::Init(Graph* graph, int stepNumber, int antInColony, float alpha,
 	InitUsedEdgesMatrix();
 	InitColoniesOrders(m_number_colonies);
 	RandomColoniesOrders();
-
-	for (int i = 0; i < graph->GetVerticesNumber(); i++) {
-
-	}
 }
 
 void AntColony::InitColoniesOrders(int numberColonies)
@@ -416,6 +413,13 @@ void AntColony::FixPheromoneValue()
 			{
 				x->pheromon[colony] = maxPheromone;
 			}
+
+			if (x->pheromon[colony] > minPheromone)
+			{
+				std::cout << x->pheromon[colony];
+				std::cout << std::endl;
+			}
+			
 		}
 	};
 	m_graph->ForEach(func);

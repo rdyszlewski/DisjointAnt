@@ -36,13 +36,13 @@ void Ant::UpdatePheromone(Graph* graph, double factor)
 {
 	int distance = GetDistance(graph);
 	double pheromoneValue = factor / distance; // TODO sprawdziæ, czy type bêd¹ siê zgadzaæ
+	//double pheromoneValue = factor * distance;
 	int pathSize = m_path.size();
 	for (int i = 0; i < pathSize-1; i++)
 	{
 		uint vertex1 = m_path[i];
 		uint vertex2 = m_path[i + 1];
 		graph->AddPheromone(vertex1, vertex2, m_colony, pheromoneValue);
-		std::cout << graph->GetPheromone(vertex1, vertex2, m_colony) << " " ;
 	}
 }
 
@@ -153,7 +153,6 @@ uint Ant::RandomVertex(Graph* graph, std::vector<uint> possibleVertex, double al
 	//TODO zrobiæ poprawne losowanie wierzcho³ka
 	std::vector<double> probabilites; 
 	double sum = 0;
-
 	for (uint vertex : possibleVertex)
 	{
 		double pheromone = graph->GetPheromone(m_current_vertex, vertex, m_colony);
@@ -185,8 +184,11 @@ uint Ant::RandomVertex(Graph* graph, std::vector<uint> possibleVertex, double al
 double Ant::CalculateProbability(double alpha, double beta, double pheromone, int distance)
 {
 	assert(distance > 0);
-	return
-		(pow(pheromone, alpha) * pow(1 / (float)distance, beta));
+	double ETA = (double)pow((double)distance, beta);
+	double TAU = (double)pow(1.0/pheromone, alpha);
+	return TAU * ETA;
+	/*return
+		((double)pow(pheromone, alpha) * (double)(pow(1 / (double)distance, beta)));*/
 }
 
 void Ant::GoBack()
